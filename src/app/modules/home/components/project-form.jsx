@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import TextareaAutosize from 'react-textarea-autosize';
-import { ArrowUpIcon, Loader2Icon } from 'next/navigation'
+import { ArrowUpIcon, Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 import { cn } from "@/lib/utils";
@@ -147,12 +147,12 @@ const ProjectForm = () => {
                             </kbd>
                             &nbsp; to submit
                         </div>
-                        {/* <Button className={cn("size-8 rounded-full")}
+                        <Button className={cn("size-8 rounded-full")}
                     type='submit'
                     >
                         <ArrowUpIcon className='size-4'/>
 
-                    </Button> */}
+                    </Button>
                     </div>
                 </form>
             </Form>
