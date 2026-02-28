@@ -19,6 +19,7 @@ import {
     FormMessage
 } from "@/components/ui/form";
 import { useRouter } from 'next/navigation'
+import { sendHelloEvent } from '../actions'
 
 const formSchema = z.object({
     content: z.string()
@@ -81,8 +82,19 @@ const ProjectForm = () => {
 
         }
     }
+    const onInvoke = async()=>{
+        try{
+            await sendHelloEvent()
+            toast.success("Event sent successfully")
+            toast.success("Event sent successfully")
+
+        }catch(error){
+            console.log('something fucking is happening here')
+        }
+    }
     return (
         <div className='space-y-8'>
+            <Button onClick={onInvoke}>Send Event</Button>
             {/* Templete Grid */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
                 {PROJECT_TEMPLATES.map((template, index) => (
