@@ -1,11 +1,17 @@
 import { inngest } from "./client";
 import {gemini, createAgent} from "@inngest/agent-kit"
+import { Sandbox } from "e2b";
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
   { event: "agent/hello" },
   async ({ event, step }) => {
-
+    const sandboxId = await step.run("create-sandbox", async () => {
+     const sandbox = await Sandbox.create({
+      templateId: "fluxiai",
+     })
+     return sandbox.sandboxId;
+    });
    const helloAgent = createAgent({
     name:"hello-agent",
     description:"A simple agent that say hello",
@@ -14,6 +20,11 @@ export const helloWorld = inngest.createFunction(
    })
 
    const {output}= await helloAgent.run("Say Hello to the user!");
+   const sandboxUrl = await step.run("get-sandbox-url", async ()=>{
+    const sandbox = await Sandbox.connect(sandboxId);
+    const host= sandbox.getHost();
+    return `http://${host}`
+   })
    return {
     message:output[0].content
   }
