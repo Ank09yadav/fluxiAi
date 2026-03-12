@@ -1,0 +1,83 @@
+PS:
+UID          PID    PPID  C STIME TTY          TIME CMD
+root           1       0  0 Mar05 ?        00:00:00 /sbin/init
+root           2       0  0 Mar05 ?        00:00:00 [kthreadd]
+root           3       2  0 Mar05 ?        00:00:00 [rcu_gp]
+root           4       2  0 Mar05 ?        00:00:00 [rcu_par_gp]
+root           5       2  0 Mar05 ?        00:00:00 [slub_flushwq]
+root           6       2  0 Mar05 ?        00:00:00 [netns]
+root           7       2  0 Mar05 ?        00:00:00 [kworker/0:0-cgroup_free]
+root           8       2  0 Mar05 ?        00:00:00 [kworker/0:0H-events_highpri]
+root           9       2  0 Mar05 ?        00:00:00 [kworker/u4:0-events_unbound]
+root          10       2  0 Mar05 ?        00:00:00 [mm_percpu_wq]
+root          11       2  0 Mar05 ?        00:00:00 [rcu_tasks_kthread]
+root          12       2  0 Mar05 ?        00:00:00 [rcu_tasks_trace_kthread]
+root          13       2  0 Mar05 ?        00:00:00 [ksoftirqd/0]
+root          14       2  0 Mar05 ?        00:00:00 [rcu_preempt]
+root          15       2  0 Mar05 ?        00:00:00 [migration/0]
+root          17       2  0 Mar05 ?        00:00:00 [cpuhp/0]
+root          18       2  0 Mar05 ?        00:00:00 [cpuhp/1]
+root          19       2  0 Mar05 ?        00:00:00 [migration/1]
+root          20       2  0 Mar05 ?        00:00:00 [ksoftirqd/1]
+root          21       2  0 Mar05 ?        00:00:00 [kworker/1:0-cgwb_release]
+root          22       2  0 Mar05 ?        00:00:00 [kworker/1:0H-kblockd]
+root          25       2  0 Mar05 ?        00:00:00 [kdevtmpfs]
+root          26       2  0 Mar05 ?        00:00:00 [inet_frag_wq]
+root          27       2  0 Mar05 ?        00:00:00 [kauditd]
+root          28       2  0 Mar05 ?        00:00:00 [khungtaskd]
+root          29       2  0 Mar05 ?        00:00:00 [oom_reaper]
+root          30       2  0 Mar05 ?        00:00:00 [writeback]
+root          31       2  0 Mar05 ?        00:00:00 [kcompactd0]
+root          32       2  0 Mar05 ?        00:00:00 [ksmd]
+root          33       2  0 Mar05 ?        00:00:00 [kintegrityd]
+root          34       2  0 Mar05 ?        00:00:00 [kblockd]
+root          35       2  0 Mar05 ?        00:00:00 [blkcg_punt_bio]
+root          37       2  0 Mar05 ?        00:00:00 [watchdogd]
+root          38       2  0 Mar05 ?        00:00:00 [rpciod]
+root          39       2  0 Mar05 ?        00:00:00 [kworker/0:1H-kblockd]
+root          40       2  0 Mar05 ?        00:00:00 [xprtiod]
+root          61       2  0 Mar05 ?        00:00:00 [kswapd0]
+root          63       2  0 Mar05 ?        00:00:00 [nfsiod]
+root          67       2  0 Mar05 ?        00:00:00 [xfsalloc]
+root          68       2  0 Mar05 ?        00:00:00 [xfs_mru_cache]
+root          70       2  0 Mar05 ?        00:00:00 [kthrotld]
+root          76       2  0 Mar05 ?        00:00:00 [irq/24-ACPI:Ged]
+root         105       2  0 Mar05 ?        00:00:00 [hwrng]
+root         130       2  0 Mar05 ?        00:00:00 [iscsi_conn_clea]
+root         153       2  0 Mar05 ?        00:00:00 [mld]
+root         154       2  0 Mar05 ?        00:00:00 [ipv6_addrconf]
+root         161       2  0 Mar05 ?        00:00:00 bpfilter_umh
+root         162       2  0 Mar05 ?        00:00:00 [kstrp]
+root         167       2  0 Mar05 ?        00:00:00 [zswap-shrink]
+root         168       2  0 Mar05 ?        00:00:00 [kworker/u5:0]
+root         245       2  0 Mar05 ?        00:00:00 [kworker/1:1H-kblockd]
+root         246       2  0 Mar05 ?        00:00:00 [jbd2/vda-8]
+root         247       2  0 Mar05 ?        00:00:00 [ext4-rsv-conver]
+root         248       2  0 Mar05 ?        00:00:00 [ext4lazyinit]
+root         277       1  0 Mar05 ?        00:00:00 /lib/systemd/systemd-journald
+systemd+     288       1  0 Mar05 ?        00:00:00 /lib/systemd/systemd-networkd
+_rpc         298       1  0 Mar05 ?        00:00:00 /sbin/rpcbind -f -w
+root         299       2  0 Mar05 ?        00:00:00 [kworker/0:4-events]
+root         311       1  0 Mar05 tty1     00:00:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         312       2  0 Mar05 ?        00:00:00 [kworker/1:3-cgroup_free]
+root         313       1  0 Mar05 tty2     00:00:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         314       1  0 Mar05 tty3     00:00:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         315       1  0 Mar05 tty4     00:00:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         316       1  0 Mar05 tty5     00:00:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         317       1  0 Mar05 tty6     00:00:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         318       1  0 Mar05 ?        00:00:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+_chrony      320       1  0 Mar05 ?        00:00:00 /usr/sbin/chronyd -F 1
+_chrony      321     320  0 Mar05 ?        00:00:00 /usr/sbin/chronyd -F 1
+root         341       2  0 Mar05 ?        00:00:00 [kworker/u4:3-events_unbound]
+root         362       1  0 Mar05 ?        00:00:00 /usr/bin/envd
+root         401       2  0 07:15 ?        00:00:00 [kworker/u4:1-events_unbound]
+root         403       1  1 07:15 ?        00:00:00 /usr/lib/apt/apt-helper wait-online
+root         412       2  0 07:15 ?        00:00:00 [kworker/1:1-events]
+root         414       2  0 07:15 ?        00:00:00 [kworker/0:1-events_power_efficient]
+root         438     403  0 07:15 ?        00:00:00 /lib/systemd/systemd-networkd-wait-online -q --timeout=30
+user         468     362  0 07:15 ?        00:00:00 ps -ef
+
+PORTS:
+  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode                                                     
+   0: 00000000:006F 00000000:0000 0A 00000000:00000000 00:00000000 00000000     0        0 445 1 00000000d0df557e 100 0 0 10 0                       
+   1: 1500FEA9:9F60 010200C0:0050 01 00000000:00000000 02:00000B4B 00000000     0        0 1753 4 00000000178ac9cc 20 4 31 10 -1                     
