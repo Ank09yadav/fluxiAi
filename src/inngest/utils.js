@@ -1,4 +1,5 @@
 export function lastAssistantTextMessageContent(result) {
+    if (!result?.output || !Array.isArray(result.output)) return undefined;
     const lastAssistantTextMessageIndex = result.output.findLastIndex(
         (message) => message.role === "assistant"
     )

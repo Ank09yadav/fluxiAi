@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
-import ProjectForm from '@/app/modules/home/components/project-form'
+import ProjectForm from '@/modules/home/components/project-form'
 
 
 const Page = () => {
@@ -17,16 +17,16 @@ const Page = () => {
               className='hidden md:block '
             />
           </div>
-        <h1 className='text-2xl md:text-5xl font-bold text-center'>build something with 💕</h1>
-        <p className='text-lg md:text-xl text-muted-foreground text-center'>Create apps and websites by chatting with AI</p>
-        <div className='max-w-3xl w-full'>
-        {/* projects forms */}
-        <ProjectForm/>
-        </div>
-        
-      </section>
+          <h1 className='text-2xl md:text-5xl font-bold text-center'>build something with 💕</h1>
+          <p className='text-lg md:text-xl text-muted-foreground text-center'>Create apps and websites by chatting with AI</p>
+          <div className='max-w-3xl w-full'>
+            {/* projects forms */}
+            <ProjectForm />
+          </div>
+
+        </section>
       </div>
-      
+
     </div>
   )
 }

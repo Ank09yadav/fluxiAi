@@ -19,7 +19,7 @@ import {
     FormMessage
 } from "@/components/ui/form";
 import { useRouter } from 'next/navigation'
-import { sendHelloEvent } from '../actions'
+import { useCreateProject } from '@/modules/projects/hooks/project'
 
 const formSchema = z.object({
     content: z.string()
@@ -30,78 +30,74 @@ const formSchema = z.object({
 const PROJECT_TEMPLATES = [
     {
         emoji: "🎬",
-        title: "Build a Netflix clone",
-        Prompt: "Build a Netflix_style homepage with a hero banner (use a nice, dark-mode compatible gradient here), movie sections responsive cards, and a modal for viewing details using mock data and local state. Use dark mode.",
+        title: "Netflix Clone",
+        Prompt: "Build a Netflix-style homepage with a hero banner, responsive movie rows, and a detail modal using local state. Apply a sleek dark-mode aesthetic with Lucide icons.",
     },
     {
-        emoji: "🧩",
-        title: "Build an admin dashboard",
-        Prompt: "Build a Netflix_style homepage with a hero banner (use a nice, dark-mode compatible gradient here), movie sections responsive cards, and a modal for viewing details using mock data and local state. Use dark mode.",
+        emoji: "📊",
+        title: "SaaS Analytics Dashboard",
+        Prompt: "Create a modern admin dashboard with a sidebar navigation, metric cards (Revenue, Users, Churn), and a line chart using Recharts. Use a clean 'Inter' font style.",
     },
     {
-        emoji: "🎬",
-        title: "Build a Netflix clone",
-        Prompt: "Build a Netflix_style homepage with a hero banner (use a nice, dark-mode compatible gradient here), movie sections responsive cards, and a modal for viewing details using mock data and local state. Use dark mode.",
+        emoji: "🛒",
+        title: "E-commerce Storefront",
+        Prompt: "Design a product listing page with category filters, a search bar, and a functional shopping cart drawer. Use high-quality mock product data.",
     },
     {
-        emoji: "🎬",
-        title: "Build a Netflix clone",
-        Prompt: "Build a Netflix_style homepage with a hero banner (use a nice, dark-mode compatible gradient here), movie sections responsive cards, and a modal for viewing details using mock data and local state. Use dark mode.",
+        emoji: "📝",
+        title: "Kanban Task Manager",
+        Prompt: "Build a Trello-like board with columns for 'To Do', 'In Progress', and 'Done'. Implement drag-and-drop functionality or simple move-to-column buttons.",
     },
     {
-        emoji: "🎬",
-        title: "Build a Netflix clone",
-        Prompt: "Build a Netflix_style homepage with a hero banner (use a nice, dark-mode compatible gradient here), movie sections responsive cards, and a modal for viewing details using mock data and local state. Use dark mode.",
+        emoji: "💬",
+        title: "Real-time Chat App",
+        Prompt: "Create a chat interface with a contact list on the left and a message window on the right. Include message bubbles, timestamps, and an emoji picker mockup.",
     },
     {
-        emoji: "🎬",
-        title: "Build a Netflix clone",
-        Prompt: "Build a Netflix_style homepage with a hero banner (use a nice, dark-mode compatible gradient here), movie sections responsive cards, and a modal for viewing details using mock data and local state. Use dark mode.",
+        emoji: "💰",
+        title: "Crypto Portfolio Tracker",
+        Prompt: "Build a financial tracker showing coin prices, a portfolio balance summary, and a transaction history table. Use green and red indicators for price changes.",
     },
-
-
 ]
 
 const ProjectForm = () => {
     const [isFocused, setIsFocused] = useState(false);
     const router = useRouter()
-    const [isPending, setIsPending] = useState(false);
+    const {mutateAsync, isPending} = useCreateProject();
+
+
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             content: ""
-        }
+        },
+        mode:"onChange"
     })
     const handleTemplete = (prompt) => {
         form.setValue("content", prompt)
     }
     const onSubmit = async (values) => {
         try {
-            console.log(values);
+            const res = await mutateAsync(values.content);
+            router.push(`/project/${res.id}`)
+            toast.success("Project created successfully");
+            form.reset();
         } catch (error) {
-
+            toast.error("Failed to start project");
+        } finally {
+            setIsPending(false);
         }
     }
-    const onInvoke = async()=>{
-        try{
-            await sendHelloEvent()
-            toast.success("Event sent successfully")
-            toast.success("Event sent successfully")
 
-        }catch(error){
-            console.log('something fucking is happening here')
-        }
-    }
     return (
         <div className='space-y-8'>
-            <Button onClick={onInvoke}>Send Event</Button>
             {/* Templete Grid */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
                 {PROJECT_TEMPLATES.map((template, index) => (
                     <button
                         key={index}
                         onClick={() => handleTemplete(template.Prompt)}
-                        // disabled={isPending}
+                        disabled={isPending}
                         className='group relative p-4 rounded-xl border bg-card hover:bg-accent/50 transition-all duration-200 text-left disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md hover:border-primary/30'>
                         <div className='flex flex-col gap-2'>
                             <span className='text-3xl' role='img' aria-label={template.title}>{template.emoji}</span>
@@ -125,7 +121,7 @@ const ProjectForm = () => {
                 </div>
             </div>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className={cn("realtive border p-4 pt-1 rounded-xl bg-sidebar dar:bg-sidebar transition-all",
+                <form onSubmit={form.handleSubmit(onSubmit)} className={cn("relative border p-4 pt-1 rounded-xl bg-sidebar dark:bg-sidebar transition-all",
                     isFocused && "shadow-lg ring-2 ring-primary/20"
                 )}>
                     <FormField
@@ -134,7 +130,7 @@ const ProjectForm = () => {
                         render={({ field }) => (
                             <TextareaAutosize
                                 {...field}
-                                // disabled={isPending}
+                                disabled={isPending}
 
                                 minRows={3}
                                 maxRows={8}
@@ -161,6 +157,7 @@ const ProjectForm = () => {
                         </div>
                         <Button className={cn("size-8 rounded-full")}
                     type='submit'
+                    disabled={isPending}
                     >
                         <ArrowUpIcon className='size-4'/>
 
