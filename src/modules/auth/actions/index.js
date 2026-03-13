@@ -61,6 +61,15 @@ export const getCurrentUser = async () => {
 
             }
         })
+
+        if (!dbUser) {
+            const result = await onBoardUser();
+            if (result.success) {
+                return result.user;
+            }
+            return null;
+        }
+
         return dbUser;
 
     } catch (error) {
