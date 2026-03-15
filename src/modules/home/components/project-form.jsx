@@ -20,11 +20,12 @@ import {
 } from "@/components/ui/form";
 import { useRouter } from 'next/navigation'
 import { useCreateProject } from '@/modules/projects/hooks/project'
+import { useUser, useClerk } from '@clerk/nextjs'
 
 const formSchema = z.object({
     content: z.string()
-        .min(1, "Project descrition is required.")
-        .max(1000, "Project descrition cannot be more than 1000 characters.")
+        .min(1, "Project description is required.")
+        .max(1000, "Project description cannot be more than 1000 characters.")
 })
 
 const PROJECT_TEMPLATES = [
@@ -63,6 +64,8 @@ const PROJECT_TEMPLATES = [
 const ProjectForm = () => {
     const [isFocused, setIsFocused] = useState(false);
     const router = useRouter()
+    const { user } = useUser();
+    const { openSignIn } = useClerk();
     const {mutateAsync, isPending} = useCreateProject();
 
 
@@ -73,10 +76,15 @@ const ProjectForm = () => {
         },
         mode:"onChange"
     })
-    const handleTemplete = (prompt) => {
+    const handleTemplate = (prompt) => {
         form.setValue("content", prompt)
     }
     const onSubmit = async (values) => {
+        if (!user) {
+            toast.error("Please sign in or sign up first to build your project.");
+            openSignIn();
+            return;
+        }
         try {
             const res = await mutateAsync(values.content);
             router.push(`/project/${res.id}`)
@@ -85,18 +93,18 @@ const ProjectForm = () => {
         } catch (error) {
             toast.error("Failed to start project");
         } finally {
-            setIsPending(false);
+            // No need to manually setIsPending(false) as it's managed by useMutation
         }
     }
 
     return (
         <div className='space-y-8'>
-            {/* Templete Grid */}
+            {/* Template Grid */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
                 {PROJECT_TEMPLATES.map((template, index) => (
                     <button
                         key={index}
-                        onClick={() => handleTemplete(template.Prompt)}
+                        onClick={() => handleTemplate(template.Prompt)}
                         disabled={isPending}
                         className='group relative p-4 rounded-xl border bg-card hover:bg-accent/50 transition-all duration-200 text-left disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md hover:border-primary/30'>
                         <div className='flex flex-col gap-2'>

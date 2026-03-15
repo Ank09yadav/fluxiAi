@@ -12,6 +12,7 @@ export const createProject = async (value)=>{
     const newProject = await db.project.create({
         data:{
             title:generateSlug(2, {format:"kebab"}),
+            content: value,
             userId:user.id,
             messages:{
                 create:{
@@ -41,6 +42,16 @@ export const getProjectById = async (id)=>{
             id:id,
             userId:user.id
         },
+        include:{
+            messages:{
+                orderBy:{
+                    createdAt:"asc"
+                },
+                include:{
+                    fragments:true
+                }
+            }
+        }
     })
     return project;
 }
@@ -57,4 +68,12 @@ export const getProjects = async () => {
         },
     })
     return projects;
+}
+export const checkSandboxStatus = async (url) => {
+    try {
+        const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+        return response.ok;
+    } catch (error) {
+        return false;
+    }
 }
