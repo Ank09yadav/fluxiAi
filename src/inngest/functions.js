@@ -152,9 +152,27 @@ export const codeAgentfunction = inngest.createFunction(
     const sandboxUrl = await step.run("get-sandbox-url", async () => {
       const sandbox = await Sandbox.connect(sandboxId);
       
-      // Start the dev server in the background so it doesn't block
+      // Start the dev server in the background
       await sandbox.commands.run("npm run dev", { background: true });
       
+      // Wait for port 3000 to be active
+      let isReady = false;
+      let attempts = 0;
+      while (!isReady && attempts < 60) {
+        try {
+          const check = await sandbox.commands.run("curl -I http://localhost:3000");
+          if (check.exitCode === 0) {
+            isReady = true;
+          } else {
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        } catch (e) {
+          attempts++;
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
       // Get the host for port 3000 where Next.js runs
       const host = sandbox.getHost(3000);
       return `http://${host}`;

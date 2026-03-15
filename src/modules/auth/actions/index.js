@@ -5,35 +5,67 @@ import { currentUser } from "@clerk/nextjs/server";
 
 export const onBoardUser = async () => {
     try {
-        const user = await currentUser();
-        if (!user) {
-            return {
-                success: false,
-                error: "no authenticatred user found"
-            }
+    const user = await currentUser();
+    if (!user) {
+      return {
+        success: false,
+        error: "no authenticated user found"
+      }
+    }
+
+    const { id, firstName, lastName, imageUrl, emailAddresses } = user;
+    const email = emailAddresses[0]?.emailAddress || "";
+    const name = firstName && lastName ? `${firstName} ${lastName}` : firstName || "User";
+
+    // 1. Try finding by clerkId
+    let dbUser = await db.user.findUnique({
+      where: { clerkId: id }
+    });
+
+    if (dbUser) {
+      // Update existing user by clerkId
+      dbUser = await db.user.update({
+        where: { clerkId: id },
+        data: {
+          name,
+          email,
+          image: imageUrl || null,
         }
-        const { id, firstName, lastName, imageUrl, emailAddresses } = user;
-        const newUser = await db.user.upsert({
-            where: {
-                clerkId: id
-            },
-            update: {
-                name: firstName && lastName ? `${firstName} ${lastName}` : firstName,
-                email: emailAddresses[0]?.emailAddress || "",
-                image: imageUrl || null,
-            },
-            create: {
-                clerkId: id,
-                name: firstName && lastName ? `${firstName} ${lastName}` : firstName,
-                email: emailAddresses[0]?.emailAddress || "",
-                image: imageUrl || null,
-            }
-        })
-        return {
-            success: true,
-            user: newUser,
-            message: "User onboarded successfully"
-        }
+      });
+    } else {
+      // 2. Try finding by email if clerkId not found (potential re-onboarding/ID change)
+      dbUser = await db.user.findUnique({
+        where: { email }
+      });
+
+      if (dbUser) {
+        // Update user's clerkId if email matched but clerkId was different
+        dbUser = await db.user.update({
+          where: { email },
+          data: {
+            clerkId: id,
+            name,
+            image: imageUrl || null,
+          }
+        });
+      } else {
+        // 3. Create brand new user
+        dbUser = await db.user.create({
+          data: {
+            clerkId: id,
+            email,
+            name,
+            image: imageUrl || null,
+          }
+        });
+      }
+    }
+
+    return {
+      success: true,
+      user: dbUser,
+      message: "User onboarded successfully"
+    }
     } catch (error) {
         console.log("❌ Error onboarding user :", error);
         return {
