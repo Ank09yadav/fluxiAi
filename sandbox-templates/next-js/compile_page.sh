@@ -1,19 +1,21 @@
+# #!/bin/bash
+# # Move to the app directory
+# cd /opt/app || exit 1
+
+# echo "Starting Next.js on port 3000..."
+# # Bind to 0.0.0.0 is critical for E2B access
+# exec npm run dev -- -p 3000 -H 0.0.0.0
 #!/bin/bash
-# This script runs during building the sandbox template
-#and makes sure the Next.js app is (1) running and (2) the `/` page is compiled
 
-function ping_server(){
-    counter=0
-    response=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000")
-    while [[ "${response}" -ne 200 ]]; do
-    let counter++ 
-    if((counter%20 == 0 ));then 
-     echo "Waiting for sever to start..."
-     sleep 0.1
-    fi
-    response=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000")
-done
-}
+# Move to the home directory where the agent writes code
+cd /home/user || exit 1
 
-ping_server & 
-cd /home/user && npx next dev --turbopack
+# If there is no package.json here, maybe copy it from /opt/app (from the build)
+if [ ! -f "package.json" ]; then
+    echo "Initializing project from template..."
+    cp -r /opt/app/. /home/user/
+fi
+
+echo "Starting Next.js server on 0.0.0.0:3000..."
+# Bind to 0.0.0.0 is critical for E2B access
+exec npm run dev -- -p 3000 -H 0.0.0.0

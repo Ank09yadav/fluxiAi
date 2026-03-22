@@ -24,7 +24,7 @@ const Page = () => {
             {/* projects forms */}
             <ProjectForm />
           </div>
-          <ProjectList/>
+          <ProjectList />
         </section>
       </div>
 
@@ -33,3 +33,4 @@ const Page = () => {
 }
 
 export default Page
+

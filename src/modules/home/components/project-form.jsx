@@ -66,7 +66,7 @@ const ProjectForm = () => {
     const router = useRouter()
     const { user } = useUser();
     const { openSignIn } = useClerk();
-    const {mutateAsync, isPending} = useCreateProject();
+    const { mutateAsync, isPending } = useCreateProject();
 
 
     const form = useForm({
@@ -74,7 +74,7 @@ const ProjectForm = () => {
         defaultValues: {
             content: ""
         },
-        mode:"onChange"
+        mode: "onChange"
     })
     const handleTemplate = (prompt) => {
         form.setValue("content", prompt)
@@ -164,12 +164,12 @@ const ProjectForm = () => {
                             &nbsp; to submit
                         </div>
                         <Button className={cn("size-8 rounded-full")}
-                    type='submit'
-                    disabled={isPending}
-                    >
-                        <ArrowUpIcon className='size-4'/>
+                            type='submit'
+                            disabled={isPending}
+                        >
+                            <ArrowUpIcon className='size-4' />
 
-                    </Button>
+                        </Button>
                     </div>
                 </form>
             </Form>

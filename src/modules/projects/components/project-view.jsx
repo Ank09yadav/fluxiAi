@@ -20,45 +20,32 @@ const ProjectView = ({ id }) => {
     const [previewLoading, setPreviewLoading] = useState(true);
     const [previewError, setPreviewError] = useState(false);
 
-    useEffect(() => {
-        if (project?.messages) {
-            // Find the last message with a fragment to show by default
-            const lastFragment = [...project.messages].reverse().find(m => m.fragments)?.fragments;
-            if (lastFragment && !selectedFragment) {
-                setSelectedFragment(lastFragment);
-            }
+    // Set default fragment during render if it's available and none is selected
+    if (project?.messages && !selectedFragment) {
+        const lastFragment = [...project.messages].reverse().find(m => m.fragments)?.fragments;
+        if (lastFragment) {
+            setSelectedFragment(lastFragment);
         }
-    }, [project, selectedFragment]);
+    }
+
+    const [prevFragmentId, setPrevFragmentId] = useState(null);
+
+    // Reset preview state when fragment changes
+    if (selectedFragment?.id !== prevFragmentId) {
+        setPrevFragmentId(selectedFragment?.id);
+        setPreviewLoading(true);
+        setPreviewError(false);
+    }
 
     useEffect(() => {
         if (selectedFragment) {
-            setPreviewLoading(true);
-            setPreviewError(false);
-
-            let interval;
-            const checkStatus = async () => {
-                const isReady = await checkSandboxStatus(selectedFragment.sandboxUrl);
-                if (isReady) {
-                    setPreviewLoading(false);
-                    clearInterval(interval);
-                }
-            };
-
-            // Start polling
-            checkStatus();
-            interval = setInterval(checkStatus, 3000);
-
-            // Timeout after 2 minutes
+            // We just give the iframe a second to let E2B start the proxy 
+            // and we show it to the user so they can see real errors natively.
             const timeout = setTimeout(() => {
-                clearInterval(interval);
-                if (previewLoading) {
-                    setPreviewError(true);
-                    setPreviewLoading(false);
-                }
-            }, 120000);
+                setPreviewLoading(false);
+            }, 1500);
 
             return () => {
-                clearInterval(interval);
                 clearTimeout(timeout);
             }
         }
@@ -89,11 +76,11 @@ const ProjectView = ({ id }) => {
     return (
         <div className="h-[calc(100vh-64px)] w-full overflow-hidden">
             <ResizablePanelGroup direction='horizontal' className="h-full">
-                <ResizablePanel 
-                  defaultSize={35}
-                  minSize={20}
-                  className='flex flex-col min-h-0 bg-background'>
-                    <ProjectHeader projectId={id}/>
+                <ResizablePanel
+                    defaultSize={35}
+                    minSize={20}
+                    className='flex flex-col min-h-0 bg-background'>
+                    <ProjectHeader projectId={id} />
                     <ScrollArea className="flex-1 p-4">
                         <div className="space-y-6">
                             {project.messages?.map((message) => (
@@ -103,16 +90,16 @@ const ProjectView = ({ id }) => {
                                 )}>
                                     <div className={cn(
                                         "p-3 rounded-2xl text-sm leading-relaxed",
-                                        message.role === 'user' 
-                                            ? "bg-primary text-primary-foreground rounded-tr-none" 
+                                        message.role === 'user'
+                                            ? "bg-primary text-primary-foreground rounded-tr-none"
                                             : "bg-muted text-muted-foreground rounded-tl-none border shadow-sm"
                                     )}>
                                         {message.content}
                                     </div>
                                     {message.fragments && (
-                                        <Button 
-                                            variant="secondary" 
-                                            size="sm" 
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
                                             className={cn(
                                                 "mt-1 gap-2 text-xs h-7 px-3",
                                                 selectedFragment?.id === message.fragments.id && "ring-2 ring-primary/20 bg-primary/10"
@@ -127,11 +114,11 @@ const ProjectView = ({ id }) => {
                             ))}
                         </div>
                     </ScrollArea>
-                    
+
                 </ResizablePanel>
-                
+
                 <ResizableHandle withHandle />
-                
+
                 <ResizablePanel defaultSize={65} minSize={40} className="bg-muted/10">
                     <Tabs defaultValue="preview" className="h-full flex flex-col">
                         <div className="flex items-center justify-between px-4 py-2 border-b bg-background">
@@ -145,7 +132,7 @@ const ProjectView = ({ id }) => {
                                     Code
                                 </TabsTrigger>
                             </TabsList>
-                            
+
                             {selectedFragment && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
@@ -183,7 +170,7 @@ const ProjectView = ({ id }) => {
                                             <p className="text-sm text-muted-foreground max-w-xs mb-6">
                                                 The preview server timed out. This often happens if the build failed or took too long.
                                             </p>
-                                            <Button 
+                                            <Button
                                                 onClick={() => {
                                                     setPreviewLoading(true);
                                                     setPreviewError(false);
@@ -195,8 +182,8 @@ const ProjectView = ({ id }) => {
                                             </Button>
                                         </div>
                                     ) : (
-                                        <iframe 
-                                            src={selectedFragment.sandboxUrl} 
+                                        <iframe
+                                            src={selectedFragment.sandboxUrl}
                                             className="absolute inset-0 w-full h-full border-none"
                                             title="Sandbox Preview"
                                         />

@@ -1,5 +1,5 @@
 # This is a config for E2B sandbox template.
-# You can use template ID (va2txj0a55o4lb3adf6a) or template name (fluxiai) to create a sandbox:
+# You can use template ID (4k6nccsrn26zo2a4uuvt) or template name (fluxiai) to create a sandbox:
 
 # Python SDK
 # from e2b import Sandbox, AsyncSandbox
@@ -10,8 +10,8 @@
 # import { Sandbox } from 'e2b'
 # const sandbox = await Sandbox.create('fluxiai')
 
-team_id = "f7b269ff-9c03-424a-a3a6-4ed345b9b2e0"
-start_cmd = "/compile_page.sh"
+team_id = "5ce53558-bfa5-44da-a8a2-3f54444997c4"
 dockerfile = "e2b.Dockerfile"
 template_name = "fluxiai"
-template_id = "va2txj0a55o4lb3adf6a"
+template_id = "4k6nccsrn26zo2a4uuvt"
+start_cmd = "/compile_page.sh"

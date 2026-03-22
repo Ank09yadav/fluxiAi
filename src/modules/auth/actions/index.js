@@ -4,7 +4,7 @@ import db from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 
 export const onBoardUser = async () => {
-    try {
+  try {
     const user = await currentUser();
     if (!user) {
       return {
@@ -50,14 +50,28 @@ export const onBoardUser = async () => {
         });
       } else {
         // 3. Create brand new user
-        dbUser = await db.user.create({
-          data: {
-            clerkId: id,
-            email,
-            name,
-            image: imageUrl || null,
+        try {
+          dbUser = await db.user.create({
+            data: {
+              clerkId: id,
+              email,
+              name,
+              image: imageUrl || null,
+            }
+          });
+        } catch (error) {
+          // Handle race condition: if another request created the user since we checked,
+          // just fetch that user instead of failing.
+          if (error.code === 'P2002') {
+            dbUser = await db.user.findUnique({
+              where: { clerkId: id }
+            }) || await db.user.findUnique({
+              where: { email }
+            });
+          } else {
+            throw error;
           }
-        });
+        }
       }
     }
 
@@ -66,46 +80,46 @@ export const onBoardUser = async () => {
       user: dbUser,
       message: "User onboarded successfully"
     }
-    } catch (error) {
-        console.log("❌ Error onboarding user :", error);
-        return {
-            success: false,
-            error: "Failed to onboard user"
-        }
+  } catch (error) {
+    console.log("❌ Error onboarding user :", error);
+    return {
+      success: false,
+      error: "Failed to onboard user"
     }
+  }
 }
 export const getCurrentUser = async () => {
-    try {
-        const user = await currentUser();
-        if (!user) {
-            return null;
-        }
-        const dbUser = await db.user.findUnique({
-            where: {
-                clerkId: user.id
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true,
-                clerkId: true,
-
-            }
-        })
-
-        if (!dbUser) {
-            const result = await onBoardUser();
-            if (result.success) {
-                return result.user;
-            }
-            return null;
-        }
-
-        return dbUser;
-
-    } catch (error) {
-        console.log("❌ Error getting current user :", error);
-        return null;
+  try {
+    const user = await currentUser();
+    if (!user) {
+      return null;
     }
+    const dbUser = await db.user.findUnique({
+      where: {
+        clerkId: user.id
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        clerkId: true,
+
+      }
+    })
+
+    if (!dbUser) {
+      const result = await onBoardUser();
+      if (result.success) {
+        return result.user;
+      }
+      return null;
+    }
+
+    return dbUser;
+
+  } catch (error) {
+    console.log("❌ Error getting current user :", error);
+    return null;
+  }
 }

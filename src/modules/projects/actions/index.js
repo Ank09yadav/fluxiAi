@@ -16,7 +16,7 @@ export const createProject = async (value)=>{
             userId:user.id,
             messages:{
                 create:{
-                    role:MessageRole.user,
+                    role:MessageRole.USER,
                     content:value,
                     type:MessageType.RESULT
                 }
@@ -76,4 +76,15 @@ export const checkSandboxStatus = async (url) => {
     } catch (error) {
         return false;
     }
+}
+
+export const deleteProject = async (id)=>{
+    const user = await getCurrentUser();
+    if(!user) throw new Error("Unauthorized");
+    return await db.project.delete({
+        where:{
+            id:id,
+            userId:user.id
+        }
+    })
 }

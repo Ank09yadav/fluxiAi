@@ -1,7 +1,9 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
+import { toast } from 'sonner'
 import {
     ChevronDown,
     LayoutDashboard,
@@ -23,11 +25,25 @@ import {
     DropdownMenuSub,
     DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
-import { useGetProjectById } from '../hooks/project';
+import { useGetProjectById, useDeleteProject } from '../hooks/project';
 
 const ProjectHeader = ({ projectId }) => {
     const { data: project, isPending } = useGetProjectById(projectId);
+    const deleteProjectMutation = useDeleteProject();
     const { theme, setTheme } = useTheme();
+    const router = useRouter();
+
+    const handleDeleteProject = async () => {
+        if (!confirm('Are you sure you want to delete this project?')) return;
+        
+        try {
+            await deleteProjectMutation.mutateAsync(projectId);
+            toast.success('Project deleted successfully');
+            router.push('/');
+        } catch (error) {
+            toast.error('Failed to delete project');
+        }
+    }
 
     return (
         <header className='p-2 flex justify-between items-center border-b bg-background'>
@@ -79,9 +95,13 @@ const ProjectHeader = ({ projectId }) => {
 
                     <DropdownMenuSeparator />
 
-                    <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer">
+                    <DropdownMenuItem 
+                        onClick={handleDeleteProject}
+                        disabled={deleteProjectMutation.isPending}
+                        className="text-destructive focus:text-destructive gap-2 cursor-pointer"
+                    >
                         <Trash className='size-4' />
-                        <span>Delete Project</span>
+                        <span>{deleteProjectMutation.isPending ? 'Deleting...' : 'Delete Project'}</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
