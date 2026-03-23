@@ -4,6 +4,7 @@ import db from "@/lib/db";
 import { MessageRole, MessageType } from "@prisma/client";
 import { generateSlug } from "random-word-slugs";
 import { getCurrentUser } from "@/modules/auth/actions";
+import { LocalSandbox } from "@/lib/LocalSandbox";
 
 export const createProject = async (value)=>{
     const user = await getCurrentUser();
@@ -87,4 +88,31 @@ export const deleteProject = async (id)=>{
             userId:user.id
         }
     })
+}
+
+export const installModule = async (projectId, moduleName) => {
+    const user = await getCurrentUser();
+    if(!user) throw new Error("Unauthorized");
+
+    // Get the latest message containing a fragment for this project
+    const latestMessage = await db.message.findFirst({
+        where: {
+            projectId: projectId,
+            fragments: { isNot: null }
+        },
+        orderBy: { createdAt: "desc" },
+        include: { fragments: true }
+    });
+
+    if (!latestMessage || !latestMessage.fragments || !latestMessage.fragments.sandboxId) {
+        throw new Error("No sandbox found for this project.");
+    }
+
+    const sandboxId = latestMessage.fragments.sandboxId;
+    console.log(`Installing ${moduleName} in sandbox ${sandboxId}`);
+
+    const sandbox = await LocalSandbox.connect(sandboxId);
+    const result = await sandbox.commands.run(`npm install ${moduleName} --yes`);
+
+    return result;
 }

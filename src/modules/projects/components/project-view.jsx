@@ -1,8 +1,10 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { useGetProjectById } from '../hooks/project'
-import { checkSandboxStatus } from '../actions'
+import { checkSandboxStatus, installModule } from '../actions'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
+import { Package } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@radix-ui/react-scroll-area'
 import { cn } from '@/lib/utils'
@@ -13,43 +15,63 @@ import { useAuth } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
+import CodeView from './code-view'
 
 const ProjectView = ({ id }) => {
     const { data: project, isPending, error } = useGetProjectById(id);
     const [selectedFragment, setSelectedFragment] = useState(null);
     const [previewLoading, setPreviewLoading] = useState(true);
     const [previewError, setPreviewError] = useState(false);
+    const [isInstalling, setIsInstalling] = useState(false);
+    const [packageName, setPackageName] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    // Set default fragment during render if it's available and none is selected
-    if (project?.messages && !selectedFragment) {
-        const lastFragment = [...project.messages].reverse().find(m => m.fragments)?.fragments;
-        if (lastFragment) {
-            setSelectedFragment(lastFragment);
+    useEffect(() => {
+        // Reset fragment when project ID changes
+        setSelectedFragment(null);
+    }, [id]);
+
+    useEffect(() => {
+        // Only set default fragment if not manually selected or if current project doesn't match selected fragment
+        if (project?.messages) {
+            const fragments = [...project.messages].reverse().find(m => m.fragments)?.fragments;
+            if (fragments && (!selectedFragment || !project.messages.some(m => m.fragments?.id === selectedFragment.id))) {
+                setSelectedFragment(fragments);
+            }
         }
-    }
-
-    const [prevFragmentId, setPrevFragmentId] = useState(null);
-
-    // Reset preview state when fragment changes
-    if (selectedFragment?.id !== prevFragmentId) {
-        setPrevFragmentId(selectedFragment?.id);
-        setPreviewLoading(true);
-        setPreviewError(false);
-    }
+    }, [project, selectedFragment]);
 
     useEffect(() => {
         if (selectedFragment) {
-            // We just give the iframe a second to let E2B start the proxy 
-            // and we show it to the user so they can see real errors natively.
+            setPreviewLoading(true);
+            setPreviewError(false);
             const timeout = setTimeout(() => {
                 setPreviewLoading(false);
-            }, 1500);
-
-            return () => {
-                clearTimeout(timeout);
-            }
+            }, 1000);
+            return () => clearTimeout(timeout);
         }
     }, [selectedFragment]);
+
+    const handleInstallPackage = async () => {
+        if (!packageName || !packageName.trim()) return;
+        setIsInstalling(true);
+        try {
+            const res = await installModule(id, packageName);
+            if (res.exitCode === 0) {
+                toast.success(`Successfully installed ${packageName}. Refreshing preview...`);
+                setRefreshKey(prev => prev + 1);
+                setPreviewLoading(true);
+                setTimeout(() => setPreviewLoading(false), 2000);
+            } else {
+                toast.error(`Failed to install: ${res.stderr || "Unknown error"}`);
+            }
+        } catch (err) {
+            toast.error(err.message || "Something went wrong during installation.");
+        } finally {
+            setIsInstalling(false);
+            setPackageName("");
+        }
+    };
 
     if (isPending) {
         return (
@@ -135,6 +157,32 @@ const ProjectView = ({ id }) => {
 
                             {selectedFragment && (
                                 <div className="flex items-center gap-2">
+                                    <div className="flex items-center bg-muted/50 rounded-md border p-1 translate-y-0.5">
+                                        <input 
+                                            type="text" 
+                                            placeholder="module-name"
+                                            className="bg-transparent border-none text-[10px] outline-none px-2 w-24 h-5 focus:ring-0"
+                                            value={packageName}
+                                            onKeyDown={(e) => {
+                                                if(e.key === 'Enter') handleInstallPackage()
+                                            }}
+                                            onChange={(e) => setPackageName(e.target.value)}
+                                        />
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="h-5 px-2 text-[10px] gap-1 opacity-60 hover:opacity-100"
+                                            onClick={handleInstallPackage}
+                                            disabled={isInstalling || !packageName}
+                                        >
+                                            {isInstalling ? (
+                                                <div className="size-2.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Package className="size-2.5" />
+                                            )}
+                                            Install
+                                        </Button>
+                                    </div>
                                     <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
                                         v1.0.0
                                     </span>
@@ -183,6 +231,7 @@ const ProjectView = ({ id }) => {
                                         </div>
                                     ) : (
                                         <iframe
+                                            key={refreshKey}
                                             src={selectedFragment.sandboxUrl}
                                             className="absolute inset-0 w-full h-full border-none"
                                             title="Sandbox Preview"
@@ -192,14 +241,11 @@ const ProjectView = ({ id }) => {
                             )}
                         </TabsContent>
 
-                        <TabsContent value="code" className="flex-1 m-0 overflow-auto bg-[#1e1e1e] text-white p-4 font-mono text-sm">
+                        <TabsContent value="code" className="flex-1 m-0 overflow-hidden">
                             {selectedFragment ? (
-                                <pre className="whitespace-pre-wrap">
-                                    {/* For now just showing a structured JSON of files as the editor isn't built yet */}
-                                    {JSON.stringify(selectedFragment.files, null, 2)}
-                                </pre>
+                                <CodeView files={selectedFragment.files} />
                             ) : (
-                                <div className="flex h-full items-center justify-center text-gray-500">
+                                <div className="flex h-full items-center justify-center text-gray-500 bg-[#1e1e1e]">
                                     No code generated yet.
                                 </div>
                             )}

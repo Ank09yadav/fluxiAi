@@ -137,6 +137,10 @@ export const codeAgentfunction = inngest.createFunction(
       agents: [codeAgent],
       maxIter: 10,
       router: async ({ network }) => {
+        // Initialize data if it doesn't exist
+        if (!network.state.data) {
+          network.state.data = { files: {}, summary: "" };
+        }
         const summary = network?.state?.data?.summary;
         if (summary) return;
         return codeAgent;
@@ -145,6 +149,39 @@ export const codeAgentfunction = inngest.createFunction(
 
     // Run the agent network
     const result = await network.run(event.data.value);
+
+    // Auto-detect and install missing dependencies
+    await step.run("auto-install-dependencies", async () => {
+      const files = result?.state?.data?.files || {};
+      const packages = new Set();
+      const importRegex = /from\s+['"]([^'"]+)['"]/g;
+
+      for (const filePath in files) {
+        const content = files[filePath];
+        let match;
+        while ((match = importRegex.exec(content)) !== null) {
+          const importPath = match[1];
+          // Filter out local imports and the @ alias
+          if (!importPath.startsWith(".") && !importPath.startsWith("/") && !importPath.startsWith("@/")) {
+            const parts = importPath.split("/");
+            const packageName = importPath.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
+            
+            // Skip known pre-installed packages to save time
+            const preInstalled = ["react", "react-dom", "next", "lucide-react", "tailwind-merge", "clsx", "class-variance-authority"];
+            if (!preInstalled.includes(packageName)) {
+              packages.add(packageName);
+            }
+          }
+        }
+      }
+
+      if (packages.size > 0) {
+        const packageList = Array.from(packages).join(" ");
+        const sandbox = await Sandbox.connect(sandboxId);
+        console.log(`[Auto-Install] Detected dependencies: ${packageList}`);
+        await sandbox.commands.run(`npm install ${packageList} --yes`);
+      }
+    });
 
     const isError =
       !result?.state?.data?.summary || Object.keys(result?.state?.data?.files || {}).length === 0;
@@ -179,6 +216,7 @@ export const codeAgentfunction = inngest.createFunction(
           fragments: {
             create: {
               sandboxUrl: sandboxUrl,
+              sandboxId: sandboxId,
               title: "untitled",
               files: result?.state?.data?.files
             }

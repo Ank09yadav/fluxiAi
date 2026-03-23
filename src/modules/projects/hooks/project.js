@@ -13,8 +13,13 @@ export const useCreateProject = () => {
 
 export const useGetProjectById = (id) => {
     return useQuery({
-        queryKey:["project",id],
-        queryFn:()=>getProjectById(id)
+        queryKey: ["project", id],
+        queryFn: () => getProjectById(id),
+        refetchInterval: (query) => {
+            const project = query.state.data;
+            const hasFragment = project?.messages?.some(m => m.fragments);
+            return hasFragment ? false : 2000;
+        }
     })
 }
 
