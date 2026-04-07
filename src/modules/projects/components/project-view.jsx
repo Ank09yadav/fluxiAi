@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { useGetProjectById } from '../hooks/project'
-import { checkSandboxStatus, installModule } from '../actions'
+import { checkSandboxStatus, installModule, restartSandbox } from '../actions'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { Package } from 'lucide-react'
@@ -45,10 +45,23 @@ const ProjectView = ({ id }) => {
         if (selectedFragment) {
             setPreviewLoading(true);
             setPreviewError(false);
-            const timeout = setTimeout(() => {
+            
+            const verifySandbox = async () => {
+                let isAlive = await checkSandboxStatus(selectedFragment.sandboxUrl);
+                if (!isAlive) {
+                    await restartSandbox(selectedFragment.sandboxId);
+                    // Give the Next.js temp dev server 3.5 seconds to boot
+                    await new Promise(r => setTimeout(r, 3500));
+                    isAlive = await checkSandboxStatus(selectedFragment.sandboxUrl);
+                }
+                
+                if (!isAlive) {
+                    setPreviewError(true);
+                }
                 setPreviewLoading(false);
-            }, 1000);
-            return () => clearTimeout(timeout);
+            };
+            
+            verifySandbox();
         }
     }, [selectedFragment]);
 
@@ -220,8 +233,12 @@ const ProjectView = ({ id }) => {
                                             </p>
                                             <Button
                                                 onClick={() => {
+                                                    setRefreshKey(k => k + 1);
                                                     setPreviewLoading(true);
                                                     setPreviewError(false);
+                                                    restartSandbox(selectedFragment.sandboxId).then(() => {
+                                                        setTimeout(() => setPreviewLoading(false), 3000);
+                                                    });
                                                 }}
                                                 variant="outline"
                                                 size="sm"

@@ -79,6 +79,16 @@ export const checkSandboxStatus = async (url) => {
     }
 }
 
+export const restartSandbox = async (sandboxId) => {
+    try {
+        const sandbox = await LocalSandbox.connect(sandboxId);
+        sandbox._startDevServer(sandbox.port);
+        return true;
+    } catch(err) {
+        return false;
+    }
+}
+
 export const deleteProject = async (id)=>{
     const user = await getCurrentUser();
     if(!user) throw new Error("Unauthorized");

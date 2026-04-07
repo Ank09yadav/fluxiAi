@@ -90,6 +90,7 @@ export class LocalSandbox {
       const proc = spawn(command, [], {
         cwd: this.localPath,
         shell: true,
+        windowsHide: true,
       });
 
       let stdout = "";
@@ -139,7 +140,8 @@ export class LocalSandbox {
     const child = spawn(devCommand, [], {
       cwd: this.localPath,
       shell: true,
-      detached: true,
+      detached: false,
+      windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe']
     });
 

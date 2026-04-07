@@ -106,13 +106,12 @@ const ProjectForm = () => {
                         key={index}
                         onClick={() => handleTemplate(template.Prompt)}
                         disabled={isPending}
-                        className='group relative p-4 rounded-xl border bg-card hover:bg-accent/50 transition-all duration-200 text-left disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md hover:border-primary/30'>
+                        className='relative p-4 rounded-xl border bg-card transition-all duration-200 text-left disabled:opacity-50 disabled:cursor-not-allowed'>
                         <div className='flex flex-col gap-2'>
                             <span className='text-3xl' role='img' aria-label={template.title}>{template.emoji}</span>
-                            <h3 className='text-sm font-medium group-hover:text-primary transition-colors'>{template.title}</h3>
+                            <h3 className='text-sm font-medium transition-colors'>{template.title}</h3>
 
                         </div>
-                        <div className='absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none' />
 
                     </button>
                 ))

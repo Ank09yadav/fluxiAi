@@ -167,7 +167,7 @@ export const codeAgentfunction = inngest.createFunction(
             const packageName = importPath.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
             
             // Skip known pre-installed packages to save time
-            const preInstalled = ["react", "react-dom", "next", "lucide-react", "tailwind-merge", "clsx", "class-variance-authority"];
+            const preInstalled = ["react", "react-dom", "next", "lucide-react", "tailwind-merge", "clsx", "class-variance-authority", "framer-motion", "recharts", "@clerk/nextjs"];
             if (!preInstalled.includes(packageName)) {
               packages.add(packageName);
             }
