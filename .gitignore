@@ -20,7 +20,7 @@ out/
 # production
 build/
 dist/
-
+sandbox-templates/*
 # misc
 .DS_Store
 *.pem
