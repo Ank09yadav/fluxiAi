@@ -18,29 +18,29 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Fluxiai",
   description: "Fluxiai is a complete AI chatbot which will help you write code. you can talk in natural language and get code as output.",
-  
+
 };
 
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-    <html lang="en"suppressHydrationWarning >
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-         <ThemeProvider
+      <html lang="en" suppressHydrationWarning >
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
             <QueryProvider>
-            <Toaster/>
-        {children}
-        </QueryProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+              <Toaster />
+              {children}
+            </QueryProvider>
+          </ThemeProvider>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }

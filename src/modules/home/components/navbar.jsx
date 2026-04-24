@@ -20,7 +20,9 @@ const Navbar = () => {
 
                 <SignedOut>
                     <div className='flex gap-2'>
-                        <Link href={"/templates"} className='md:hidden block mr-2 mt-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors'>Templates</Link>
+                        <Link href={"/templates"} className='md:hidden block mr-2 mt-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors'>Templates</Link>
+                        <Link href={"/pricing"} className='md:hidden block mr-2 mt-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors'>Pricing</Link>
+                        <Link href={"/docs"} className='md:hidden block mr-2 mt-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors'>Docs</Link>
                         <SignInButton>
                             <Button variant={"outline"} size='sm' className="rounded-full">Sign In</Button>
                         </SignInButton>

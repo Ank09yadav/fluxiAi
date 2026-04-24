@@ -10,6 +10,15 @@ export const createProject = async (value)=>{
     const user = await getCurrentUser();
     if(!user) throw new Error("Unauthorized");
 
+    if (!user.isPro) {
+        const projectCount = await db.project.count({
+            where: { userId: user.id }
+        });
+        if (projectCount >= 4) {
+            throw new Error("LIMIT_REACHED");
+        }
+    }
+
     const newProject = await db.project.create({
         data:{
             title:generateSlug(2, {format:"kebab"}),

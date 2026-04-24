@@ -19,7 +19,7 @@ import {
     FormMessage
 } from "@/components/ui/form";
 import { useRouter } from 'next/navigation'
-import { useCreateProject } from '@/modules/projects/hooks/project'
+import { useCreateProject, useGetProjects } from '@/modules/projects/hooks/project'
 import { useUser, useClerk } from '@clerk/nextjs'
 
 const formSchema = z.object({
@@ -67,7 +67,11 @@ const ProjectForm = () => {
     const { user } = useUser();
     const { openSignIn } = useClerk();
     const { mutateAsync, isPending } = useCreateProject();
+    const { data: projects } = useGetProjects();
 
+    const isPro = user?.publicMetadata?.isPro;
+    const projectCount = projects?.length || 0;
+    const projectsLeft = isPro ? "Unlimited" : Math.max(0, 4 - projectCount);
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -91,7 +95,16 @@ const ProjectForm = () => {
             toast.success("Project created successfully");
             form.reset();
         } catch (error) {
-            toast.error("Failed to start project");
+            if (error.message === "LIMIT_REACHED") {
+                toast.error("Free limit reached (4 projects). Upgrade to Pro to build more!", {
+                    action: {
+                        label: "Upgrade",
+                        onClick: () => router.push("/pricing")
+                    }
+                });
+            } else {
+                toast.error("Failed to start project");
+            }
         } finally {
             // No need to manually setIsPending(false) as it's managed by useMutation
         }
@@ -155,12 +168,20 @@ const ProjectForm = () => {
                         )}
                     />
                     <div className='flex gap-x-2 items-end justify-between pt-2'>
-                        <div className='text-[10px] text-muted-foreground font-mono'>
-                            <kbd className='ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground'>
-                                <span>&#8984;</span>
-                                <span>Enter</span>
-                            </kbd>
-                            &nbsp; to submit
+                        <div className='flex items-center gap-4 text-[10px] text-muted-foreground font-mono'>
+                            <div>
+                                <kbd className='pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground'>
+                                    <span>&#8984;</span>
+                                    <span>Enter</span>
+                                </kbd>
+                                &nbsp; to submit
+                            </div>
+                            {user && (
+                                <div className="flex items-center gap-1">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary/50" />
+                                    {isPro ? "Unlimited projects" : `${projectsLeft} project${projectsLeft !== 1 ? 's' : ''} left`}
+                                </div>
+                            )}
                         </div>
                         <Button className={cn("size-8 rounded-full")}
                             type='submit'
