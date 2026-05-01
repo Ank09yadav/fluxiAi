@@ -44,45 +44,50 @@ export const createProject = async (value)=>{
 
 }
 
-export const getProjectById = async (id)=>{
-    const user = await getCurrentUser();
-    if(!user) throw new Error("Unauthorized");
-    const project = await db.project.findUnique({
-        where:{
-            id:id,
-            userId:user.id
-        },
-        include:{
-            messages:{
-                orderBy:{
-                    createdAt:"asc"
-                },
-                include:{
-                    fragments:true
-                }
-            }
-        }
-    })
-    return project;
+import { fetchProjectById, fetchAllProjects, removeProject, fetchLatestMessageWithFragment } from "../services/project-service";
+
+export const getProjectById = async (projectId) => {
+    try {
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser || !sessionUser.id) throw new Error("Unauthorized");
+        
+        // Call the service layer (NOT a server action)
+        return await fetchProjectById(projectId, sessionUser.id);
+    } catch (error) {
+        console.error("Error in getProjectById:", error);
+        throw error;
+    }
 }
 
 export const getProjects = async () => {
-    const user = await getCurrentUser();
-    if(!user) throw new Error("Unauthorized");
-    const projects = await db.project.findMany({
-        where:{
-            userId:user.id
-        },
-        orderBy:{
-            createdAt:"desc"
-        },
-    })
-    return projects;
+    try {
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser || !sessionUser.id) throw new Error("Unauthorized");
+        
+        return await fetchAllProjects(sessionUser.id);
+    } catch (error) {
+        console.error("Error in getProjects:", error);
+        throw error;
+    }
 }
 export const checkSandboxStatus = async (url) => {
     try {
-        const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-        return response.ok;
+        if (!url || url.includes('undefined')) return false;
+        
+        // Use a controller to avoid long hangs
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+        const response = await fetch(url, { 
+            method: 'GET', // Some dev servers prefer GET
+            cache: 'no-store',
+            signal: controller.signal,
+            headers: {
+                'Accept': 'text/html'
+            }
+        });
+        clearTimeout(timeoutId);
+        return response.ok || response.status === 200 || response.status === 304;
     } catch (error) {
         return false;
     }
@@ -98,40 +103,39 @@ export const restartSandbox = async (sandboxId) => {
     }
 }
 
-export const deleteProject = async (id)=>{
-    const user = await getCurrentUser();
-    if(!user) throw new Error("Unauthorized");
-    return await db.project.delete({
-        where:{
-            id:id,
-            userId:user.id
-        }
-    })
+export const deleteProject = async (projectId) => {
+    try {
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser || !sessionUser.id) throw new Error("Unauthorized");
+        
+        return await removeProject(projectId, sessionUser.id);
+    } catch (error) {
+        console.error("Error in deleteProject:", error);
+        throw error;
+    }
 }
 
 export const installModule = async (projectId, moduleName) => {
-    const user = await getCurrentUser();
-    if(!user) throw new Error("Unauthorized");
+    try {
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser || !sessionUser.id) throw new Error("Unauthorized");
 
-    // Get the latest message containing a fragment for this project
-    const latestMessage = await db.message.findFirst({
-        where: {
-            projectId: projectId,
-            fragments: { isNot: null }
-        },
-        orderBy: { createdAt: "desc" },
-        include: { fragments: true }
-    });
+        // Call service layer
+        const latestMessage = await fetchLatestMessageWithFragment(projectId);
 
-    if (!latestMessage || !latestMessage.fragments || !latestMessage.fragments.sandboxId) {
-        throw new Error("No sandbox found for this project.");
+        if (!latestMessage || !latestMessage.fragments || !latestMessage.fragments.sandboxId) {
+            throw new Error("No sandbox found for this project.");
+        }
+
+        const sandboxId = latestMessage.fragments.sandboxId;
+        console.log(`Installing ${moduleName} in sandbox ${sandboxId}`);
+
+        const sandbox = await LocalSandbox.connect(sandboxId);
+        const result = await sandbox.commands.run(`npm install ${moduleName} --yes`);
+
+        return result;
+    } catch (error) {
+        console.error("Error in installModule:", error);
+        throw error;
     }
-
-    const sandboxId = latestMessage.fragments.sandboxId;
-    console.log(`Installing ${moduleName} in sandbox ${sandboxId}`);
-
-    const sandbox = await LocalSandbox.connect(sandboxId);
-    const result = await sandbox.commands.run(`npm install ${moduleName} --yes`);
-
-    return result;
 }

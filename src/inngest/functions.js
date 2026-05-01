@@ -8,9 +8,7 @@ import db from "@/lib/db";
 import { MessageRole, MessageType } from "@prisma/client";
 
 export const codeAgentfunction = inngest.createFunction(
-  { id: "code-agent" },
-  { event: "code-agent/run" },
-
+  { id: "code-agent", triggers: [{ event: "code-agent/run" }] },
   async ({ event, step }) => {
     // Step 1: Create the sandbox using the pre-built template
     const sandboxId = await step.run("create-sandbox", async () => {
@@ -154,15 +152,16 @@ export const codeAgentfunction = inngest.createFunction(
     await step.run("auto-install-dependencies", async () => {
       const files = result?.state?.data?.files || {};
       const packages = new Set();
-      const importRegex = /from\s+['"]([^'"]+)['"]/g;
+      // Regex to match ES6 imports and CommonJS requires
+      const importRegex = /(?:import|from)\s+['"]([^'"]+)['"]|require\(['"]([^'"]+)['"]\)/g;
 
       for (const filePath in files) {
         const content = files[filePath];
         let match;
         while ((match = importRegex.exec(content)) !== null) {
-          const importPath = match[1];
+          const importPath = match[1] || match[2];
           // Filter out local imports and the @ alias
-          if (!importPath.startsWith(".") && !importPath.startsWith("/") && !importPath.startsWith("@/")) {
+          if (importPath && !importPath.startsWith(".") && !importPath.startsWith("/") && !importPath.startsWith("@/")) {
             const parts = importPath.split("/");
             const packageName = importPath.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
             

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn, execSync } from "node:child_process";
 import crypto from "node:crypto";
+import net from "node:net";
 
 const BASE_DIR = path.resolve(process.cwd(), "local-sandboxes");
 const TEMPLATE_DIR = path.resolve(process.cwd(), "sandbox-templates/next-js/template");
@@ -76,9 +77,8 @@ export class LocalSandbox {
   }
 
   getHost(portArg) {
-    // Ignores portArg if we want to use the assigned one, or merges it.
     // In our case, Next.js is running on this.port.
-    return `localhost:${this.port}`;
+    return `127.0.0.1:${this.port}`;
   }
 
   async _runCommand(command, options = {}) {
@@ -133,7 +133,33 @@ export class LocalSandbox {
   }
 
   _startDevServer(port) {
-    const devCommand = `npm run dev -- -p ${port}`;
+    // Kill existing process if any
+    const metadataPath = path.join(this.localPath, ".sandbox_metadata.json");
+    if (fs.existsSync(metadataPath)) {
+        try {
+            const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
+            if (metadata.pid) {
+                console.log(`Killing existing process ${metadata.pid} for sandbox ${this.sandboxId}`);
+                if (process.platform === "win32") {
+                    try {
+                        execSync(`taskkill /F /T /PID ${metadata.pid}`, { stdio: 'ignore' });
+                    } catch (e) {
+                        // Process might already be dead
+                    }
+                } else {
+                    try {
+                        process.kill(metadata.pid, 'SIGTERM');
+                    } catch (e) {
+                        // Process might already be dead
+                    }
+                }
+            }
+        } catch (e) {
+            // Process might already be dead
+        }
+    }
+
+    const devCommand = `npm run dev -- -p ${port} -H 127.0.0.1`;
     const logPath = path.join(this.localPath, ".dev_server.log");
     const logStream = fs.createWriteStream(logPath, { flags: 'a' });
 
@@ -150,19 +176,38 @@ export class LocalSandbox {
 
     child.unref(); // Allow the parent process to exit independently
     
-    // Save PID to metadata if we want to kill it later
-    const metadataPath = path.join(this.localPath, ".sandbox_metadata.json");
-    const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
+    // Save PID to metadata
+    const metadata = fs.existsSync(metadataPath) ? JSON.parse(fs.readFileSync(metadataPath, "utf-8")) : {};
     metadata.pid = child.pid;
+    metadata.port = port;
+    metadata.sandboxId = this.sandboxId;
     fs.writeFileSync(metadataPath, JSON.stringify(metadata));
   }
 
   static async _findFreePort(startPort) {
     let port = startPort;
-    const isPortInUse = (p) => {
+    
+    const isPortAvailable = (p) => {
+        return new Promise((resolve) => {
+            const server = net.createServer();
+            server.once('error', (err) => {
+                if (err.code === 'EADDRINUSE') {
+                    resolve(false);
+                } else {
+                    resolve(false);
+                }
+            });
+            server.once('listening', () => {
+                server.close();
+                resolve(true);
+            });
+            server.listen(p, '127.0.0.1');
+        });
+    };
+
+    const isPortInMetadata = (p) => {
       try {
-        // Simple check: see if we have a metadata file with this port in BASE_DIR
-        // Or more robust: try to bind to it (omitted for brevity, using directory scan)
+        if (!fs.existsSync(BASE_DIR)) return false;
         const files = fs.readdirSync(BASE_DIR);
         for (const file of files) {
           const metaPath = path.join(BASE_DIR, file, ".sandbox_metadata.json");
@@ -177,8 +222,9 @@ export class LocalSandbox {
       }
     };
 
-    while (isPortInUse(port)) {
+    while (isPortInMetadata(port) || !(await isPortAvailable(port))) {
       port++;
+      if (port > startPort + 1000) throw new Error("Could not find a free port");
     }
     return port;
   }

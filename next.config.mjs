@@ -3,6 +3,7 @@ const nextConfig = {
   /* config options here */
   reactCompiler: true,
   devIndicators: false,
+  serverExternalPackages: ['pg', '@prisma/adapter-pg'],
 };
 
 export default nextConfig;

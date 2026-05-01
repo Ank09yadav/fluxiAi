@@ -26,6 +26,8 @@ const ProjectView = ({ id }) => {
     const [packageName, setPackageName] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
 
+    const hasError = project?.messages?.some(m => m.type === 'ERROR');
+
     useEffect(() => {
         // Reset fragment when project ID changes
         setSelectedFragment(null);
@@ -47,18 +49,34 @@ const ProjectView = ({ id }) => {
             setPreviewError(false);
             
             const verifySandbox = async () => {
-                let isAlive = await checkSandboxStatus(selectedFragment.sandboxUrl);
-                if (!isAlive) {
-                    await restartSandbox(selectedFragment.sandboxId);
-                    // Give the Next.js temp dev server 3.5 seconds to boot
-                    await new Promise(r => setTimeout(r, 3500));
-                    isAlive = await checkSandboxStatus(selectedFragment.sandboxUrl);
-                }
+                let isAlive = false;
+                let attempts = 0;
+                const maxAttempts = 15; // Total 15 seconds if each wait is 1s
                 
-                if (!isAlive) {
+                try {
+                    while (attempts < maxAttempts && !isAlive) {
+                        isAlive = await checkSandboxStatus(selectedFragment.sandboxUrl);
+                        if (isAlive) break;
+                        
+                        if (attempts === 0) {
+                            // First attempt failed, maybe it's not even started yet. 
+                            // If it's a known sandbox, try to restart it once.
+                            await restartSandbox(selectedFragment.sandboxId);
+                        }
+                        
+                        attempts++;
+                        await new Promise(r => setTimeout(r, 1500)); // Wait 1.5s between checks
+                    }
+                    
+                    if (!isAlive) {
+                        setPreviewError(true);
+                    }
+                } catch (err) {
+                    console.error("Sandbox verification failed:", err);
                     setPreviewError(true);
+                } finally {
+                    setPreviewLoading(false);
                 }
-                setPreviewLoading(false);
             };
             
             verifySandbox();
@@ -109,7 +127,7 @@ const ProjectView = ({ id }) => {
     }
 
     return (
-        <div className="h-[calc(100vh-64px)] w-full overflow-hidden">
+        <div className="h-full w-full overflow-hidden">
             <ResizablePanelGroup direction='horizontal' className="h-full">
                 <ResizablePanel
                     defaultSize={35}
@@ -121,11 +139,11 @@ const ProjectView = ({ id }) => {
                             {project.messages?.map((message) => (
                                 <div key={message.id} className={cn(
                                     "flex flex-col gap-2 max-w-[92%]",
-                                    message.role === 'user' ? "ml-auto items-end" : "mr-auto items-start"
+                                    message.role === 'USER' ? "ml-auto items-end" : "mr-auto items-start"
                                 )}>
                                     <div className={cn(
                                         "p-3 rounded-2xl text-sm leading-relaxed",
-                                        message.role === 'user'
+                                        message.role === 'USER'
                                             ? "bg-primary text-primary-foreground rounded-tr-none"
                                             : "bg-muted text-muted-foreground rounded-tl-none border shadow-sm"
                                     )}>
@@ -210,10 +228,17 @@ const ProjectView = ({ id }) => {
 
                         <TabsContent value="preview" className="flex-1 m-0 relative overflow-hidden bg-white dark:bg-black">
                             {!selectedFragment ? (
-                                <div className="flex flex-col h-full items-center justify-center text-muted-foreground gap-3">
-                                    <Terminal className="size-10 opacity-20" />
-                                    <p className="text-sm">Wait for the agent to generate a result...</p>
-                                </div>
+                                hasError ? (
+                                    <div className="flex flex-col h-full items-center justify-center text-destructive gap-3">
+                                        <Terminal className="size-10 opacity-50" />
+                                        <p className="text-sm">Generation failed. Please try again.</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col h-full items-center justify-center text-muted-foreground gap-3">
+                                        <Terminal className="size-10 opacity-20" />
+                                        <p className="text-sm">Wait for the agent to generate a result...</p>
+                                    </div>
+                                )
                             ) : (
                                 <>
                                     {previewLoading && (

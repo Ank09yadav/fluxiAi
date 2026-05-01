@@ -104,7 +104,7 @@ export const getCurrentUser = async () => {
         email: true,
         image: true,
         clerkId: true,
-
+        isPro: true,
       }
     })
 

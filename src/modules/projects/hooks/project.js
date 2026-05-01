@@ -18,7 +18,8 @@ export const useGetProjectById = (id) => {
         refetchInterval: (query) => {
             const project = query.state.data;
             const hasFragment = project?.messages?.some(m => m.fragments);
-            return hasFragment ? false : 2000;
+            const hasError = project?.messages?.some(m => m.type === 'ERROR');
+            return hasFragment || hasError ? false : 2000;
         }
     })
 }
