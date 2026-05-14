@@ -1,122 +1,160 @@
 # FluxiAi
 
-FluxiAi is a powerful, autonomous AI coding agent platform designed to build, run, and preview Next.js applications in real-time. By leveraging the **Inngest Agent Kit** and **E2B Sandboxes**, FluxiAi provides a secure and isolated environment where an AI engineer can write code, install dependencies, and execute commands just like a human developer.
+FluxiAi is an AI-powered developer platform that helps build, run, and preview Next.js web applications inside secure sandbox environments.
+
+It solves the real-world problem of safely turning AI-generated application ideas into runnable projects by combining intelligent code orchestration, containerized execution, and instant feedback.
+
+---
+
+## 🚀 What FluxiAi Does
+
+FluxiAi enables developers and AI agents to:
+- generate and modify Next.js applications automatically
+- execute them inside isolated E2B sandboxes
+- preview changes instantly through the Next.js development server
+- persist application state using Prisma + PostgreSQL
+- manage users securely with Clerk
+- orchestrate workflows with Inngest
+
+This reduces manual setup overhead, prevents unsafe host changes, and accelerates AI-based prototyping.
 
 ---
 
 ## ✨ Key Features
 
-- **🤖 Autonomous Coding Agent**: Powered by GPT-4o-mini and Inngest Agent Kit to handle complex coding tasks.
-- **🏗️ Real-time Sandboxing**: Uses [E2B](https://e2b.dev/) to spin up secure, isolated environments for every project.
-- **⚡ Next.js Preview**: Instant preview of generated applications with hot-reloading.
-- **🎨 Modern UI Stack**: Pre-configured with Tailwind CSS 4, Shadcn UI, and Lucide Icons.
-- **🔄 Workflow Orchestration**: Managed by [Inngest](https://www.inngest.com/) for reliable, multi-step agent execution.
-- **🔐 Secure Auth**: Integrated with [Clerk](https://clerk.com/) for seamless user management.
-- **🗄️ Robust Data Layer**: Prisma ORM with PostgreSQL for persistent storage.
+- **Autonomous AI development**: AI can write, update, and validate application code.
+- **Secure sandbox runtime**: Uses E2B to run generated Next.js apps in isolated environments.
+- **Live app preview**: Next.js dev server provides immediate rendering and hot reload.
+- **Persistent backend**: Prisma with PostgreSQL stores application and user state.
+- **Authentication support**: Clerk integration enables secure user access.
+- **Workflow orchestration**: Inngest manages background jobs and agent workflows.
+
+---
+
+## 🧩 Problem Solved
+
+Many AI development platforms struggle with safe execution and real-world usability. FluxiAi addresses this by:
+
+1. Eliminating the need to manually configure and maintain development environments.
+2. Running generated apps in sandbox containers so code execution is contained and secure.
+3. Providing a connected stack for app generation, preview, data storage, auth, and workflow management.
+
+This makes it easier to prototype AI-generated Next.js applications while keeping developer workflows stable and reproducible.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **Components**: [Shadcn UI](https://ui.shadcn.com/)
-- **Agent Orchestration**: [Inngest Agent Kit](https://github.com/inngest/agent-kit)
-- **Runtime Sandbox**: [E2B SDK](https://e2b.dev/docs)
-- **Database**: [PostgreSQL](https://www.postgresql.org/) & [Prisma](https://www.prisma.io/)
-- **Authentication**: [Clerk](https://clerk.com/)
-- **AI Model**: [OpenAI GPT-4o-mini](https://openai.com/)
+- **Next.js 16** with App Router
+- **React 19**
+- **Tailwind CSS 4**
+- **Shadcn UI**
+- **Prisma + PostgreSQL**
+- **Clerk** for authentication
+- **Inngest** for orchestration
+- **E2B** for sandboxed runtime environments
+- **OpenAI GPT-4o-mini** for AI capabilities
 
 ---
 
-## 🚀 Getting Started
+## 📁 Project Structure
 
-Follow these steps to get FluxiAi running on your local machine.
+- `app/` – Next.js application routes and UI pages
+- `public/` – Static assets and frontend resources
+- `prisma/` – Database schema and Prisma configuration
+- `sandbox-templates/` – E2B sandbox templates for runtime environments
+- `docker-compose.yml` – Local PostgreSQL service definition
+- `next.config.mjs` – Next.js configuration
+- `package.json` – Scripts and dependency declarations
 
-### 1. Prerequisites
+---
 
-Ensure you have the following installed:
-- **Node.js**: v20 or higher
-- **Docker Desktop**: [Download here](https://www.docker.com/products/docker-desktop/) (Required for local PostgreSQL)
-- **E2B CLI**: `npm install -g e2b`
+## ⚙️ Getting Started
 
-### 2. Environment Setup
+### Prerequisites
 
-Create a `.env` file in the root directory and add the following:
+- Node.js 20+
+- Docker Desktop
+- E2B CLI (`npm install -g e2b`)
+
+### Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/Ank09yadav/fluxiAi.git
+cd fluxiAi
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env` file in the project root:
 
 ```env
-# Clerk Authentication
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 CLERK_SECRET_KEY=your_clerk_secret_key
-
-# Database
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/fluxiai?schema=public"
-
-# AI & Sandboxing
 OPENAI_API_KEY=your_openai_api_key
 E2B_API_KEY=your_e2b_api_key
 ```
 
-### 3. Installation
+4. Start PostgreSQL with Docker:
 
 ```bash
-# Clone the repository
-git clone https://github.com/Ank09yadav/fluxiAi.git
-cd fluxiAi
-
-# Install dependencies
-npm install
+docker compose up -d
 ```
 
-### 4. Database & Services
-
-Start the PostgreSQL database using Docker and sync the schema:
+5. Apply the Prisma schema:
 
 ```bash
-# Start Docker containers
-docker compose up -d
-
-# Push Prisma schema to database
 npx prisma db push
 ```
 
-### 5. Build E2B Sandbox Template (Important)
-
-FluxiAi requires a custom E2B sandbox template to run Next.js apps.
+6. Build the E2B sandbox template:
 
 ```bash
-# Navigate to the template directory
 cd sandbox-templates/next-js
-
-# Login to E2B (if not already)
 e2b login
-
-# Build the template
 e2b template build
 ```
 
 ---
 
-## 💻 Running Locally
+## ▶️ Run Locally
 
-Once everything is set up, start the development server:
+Start the Next.js server:
 
 ```bash
 npm run dev
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+Run the Inngest worker locally if you need agent orchestration:
+
+```bash
+npm run inngest
+```
+
+Open `http://localhost:3000` in your browser.
 
 ---
 
-## 🤝 Contact & Support
+## 📌 Notes
 
-If you have any questions or want to reach out, feel free to connect!
-
-- **Name**: Ankur Yadav
-- **Email**: [ankury114112118@gmail.com](mailto:ankury114112118@gmail.com)
-- **GitHub**: [@Ank09yadav](https://github.com/Ank09yadav)
+- The project uses containerized sandboxes for secure execution of generated applications.
+- `docker-compose.yml` starts a local PostgreSQL database named `fluxiai`.
+- `sandbox-templates/next-js` contains the E2B template used to launch sandboxed runtime environments.
 
 ---
 
-Developed with ❤️ by **Ankur Yadav**
+## 🙋‍♂️ Contact
+
+- Email: ankur.appdev@gmail.com
+- GitHub: [@Ank09yadav](https://github.com/Ank09yadav)
+
+---
+
+Built to accelerate AI-assisted application development with secure sandboxing and end-to-end runtime support.
